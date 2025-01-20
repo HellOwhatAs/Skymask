@@ -13,19 +13,23 @@ class Visualizer:
         lines: np.ndarray,
         theta: np.ndarray,
         pos: Tuple[float, float],
+        dx: float = 0.1,
+        max_dist = np.inf
     ):
         self.fig = fig
         self.ax = ax
         self.lines = lines
         self.theta = theta
         self.pos = list(pos)
+        self.dx = dx
+        self.max_dist = max_dist
         self.update()
 
     def update(self):
         self.ax.yaxis.set_major_formatter("")
         self.ax.set_ylim(0, np.pi / 2)
         self.ax.set_title(f"pos: {self.pos}")
-        selected_lines, selected = select_lines(self.theta, self.lines, pos=self.pos)
+        selected_lines, selected = select_lines(self.theta, self.lines, pos=self.pos, max_dist=self.max_dist)
         a1, a2 = calc_alpha(self.theta, selected_lines, selected)
         x = np.concatenate(
             (self.theta, (self.theta - np.pi), np.array([self.theta[0]])), axis=0
@@ -33,18 +37,20 @@ class Visualizer:
         y = np.concatenate(
             (np.pi / 2 - a1, np.pi / 2 - a2, np.array([np.pi / 2 - a1[0]])), axis=0
         )
+        if np.__name__ == "cupy":
+            x, y = x.get(), y.get()
         self.ax.plot(x, y)
         self.ax.fill_between(x, y, np.pi / 2, alpha=0.2)
 
     def on_press(self, event: KeyEvent):
         if event.key == "up":
-            self.pos[1] = round(self.pos[1] + 0.1, 3)
+            self.pos[1] = round(self.pos[1] + self.dx, 3)
         elif event.key == "left":
-            self.pos[0] = round(self.pos[0] - 0.1, 3)
+            self.pos[0] = round(self.pos[0] - self.dx, 3)
         elif event.key == "down":
-            self.pos[1] = round(self.pos[1] - 0.1, 3)
+            self.pos[1] = round(self.pos[1] - self.dx, 3)
         elif event.key == "right":
-            self.pos[0] = round(self.pos[0] + 0.1, 3)
+            self.pos[0] = round(self.pos[0] + self.dx, 3)
         else:
             return
         self.ax.cla()
