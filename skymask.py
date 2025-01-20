@@ -5,7 +5,8 @@ from typing import Tuple
 
 def select_lines(
         theta: NDArray[np.float64],
-        lines: NDArray[np.float64], 
+        lines: NDArray[np.float64],
+        pos: Tuple[float, float] = (0, 0),
         max_dist = np.inf
     ) -> Tuple[NDArray[np.float64], NDArray[np.bool_]]:
     """
@@ -20,13 +21,17 @@ def select_lines(
     - selected_mask: boolean array with shape (n_, m) indicating whether  
       each angle in `theta` falls within the angle range of each line.
     """
+    xa, ya, xb, yb = (
+        lines[:, 0] - pos[0], lines[:, 1] - pos[1],
+        lines[:, 3] - pos[0], lines[:, 4] - pos[1]
+    )
     lines = lines[
-        ((lines[:, 3] * lines[:, 1]) != (lines[:, 0] * lines[:, 4])) & 
-        (np.minimum(
-            np.linalg.norm(lines[:, 0:2], axis=1),
-            np.linalg.norm(lines[:, 3:5], axis=1)
-        ) < max_dist)
-    ]
+        ((xb * ya) != (xa * yb)) &
+        (np.minimum(np.hypot(xa, ya), np.hypot(xb, yb)) < max_dist)
+    ].copy()
+    del xa, ya, xb, yb
+    lines[:, (0, 3)] -= pos[0]
+    lines[:, (1, 4)] -= pos[1]
 
     theta_a = np.arctan2(lines[:, 1], lines[:, 0])
     theta_b = np.arctan2(lines[:, 4], lines[:, 3])
@@ -51,7 +56,7 @@ def select_lines(
 
 def calc_alpha(
     theta: NDArray[np.float64],
-    lines: NDArray[np.float64], 
+    lines: NDArray[np.float64],
     selected: NDArray[np.bool_]
 ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
@@ -97,7 +102,7 @@ if __name__ == "__main__":
 
     theta = np.linspace(0, np.pi, num=500, endpoint=False)
 
-    selected_lines, selected = select_lines(theta, lines)
+    selected_lines, selected = select_lines(theta, lines, pos=(0.5, 0.2))
     a1, a2 = calc_alpha(theta, selected_lines, selected)
 
     import matplotlib.pyplot as plt
