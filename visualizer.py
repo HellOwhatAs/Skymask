@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import KeyEvent
 from matplotlib.figure import Figure
-from skymask import np, select_lines, calc_alpha, Tuple
+from skymask import np, select_lines, calc_alpha, Tuple, KDTree
 
 
 class Visualizer:
@@ -11,6 +11,7 @@ class Visualizer:
         fig: Figure,
         ax: Axes,
         lines: np.ndarray,
+        kdtree: KDTree,
         theta: np.ndarray,
         pos: Tuple[float, float],
         dx: float = 0.1,
@@ -19,6 +20,7 @@ class Visualizer:
         self.fig = fig
         self.ax = ax
         self.lines = lines
+        self.kdtree = kdtree
         self.theta = theta
         self.pos = list(pos)
         self.dx = dx
@@ -29,7 +31,8 @@ class Visualizer:
         self.ax.yaxis.set_major_formatter("")
         self.ax.set_ylim(0, np.pi / 2)
         self.ax.set_title(f"pos: {self.pos}")
-        selected_lines, selected = select_lines(self.theta, self.lines, pos=self.pos, max_dist=self.max_dist)
+
+        selected_lines, selected = select_lines(self.theta, self.lines, self.kdtree, pos=self.pos, max_dist=self.max_dist)
         a1, a2 = calc_alpha(self.theta, selected_lines, selected)
         x = np.concatenate(
             (self.theta, (self.theta - np.pi), np.array([self.theta[0]])), axis=0
@@ -59,6 +62,8 @@ class Visualizer:
 
 
 if __name__ == "__main__":
+    from data_reader import build_kdtree
+
     lines = np.array([
         #  xa,   ya,   za,   xb,   yb,  zb
         [ 1.0,  1.0,  1.0, -1.0,  1.0, 1.0],
@@ -66,9 +71,10 @@ if __name__ == "__main__":
         [-1.0, -1.0,  1.0,  1.0, -1.0, 1.0],
         [ 1.0, -1.0,  1.0,  1.0,  1.0, 1.0],
     ])
+    kdtree = build_kdtree(lines)
     theta = np.linspace(0, np.pi, num=100, endpoint=False)
 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    vis = Visualizer(fig, ax, lines, theta, (0, 0))
+    vis = Visualizer(fig, ax, lines, kdtree, theta, (0, 0))
     fig.canvas.mpl_connect('key_press_event', vis.on_press)
     plt.show()

@@ -1,11 +1,19 @@
-import numpy as np
-# import cupy as np
+import cupy
 from numpy.typing import NDArray
+from scipy.spatial import KDTree
 from typing import Tuple
+if not cupy.cuda.is_available():
+    import cupy as np
+    free_mem, total_mem = cupy.cuda.runtime.memGetInfo()
+    np.get_default_memory_pool().set_limit(free_mem * 0.8)
+    # https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.MemoryPool.html
+else:
+    import numpy as np
 
 def select_lines(
         theta: NDArray[np.float64],
         lines: NDArray[np.float64],
+        kdtree: KDTree,
         pos: Tuple[float, float] = (0, 0),
         max_dist = np.inf
     ) -> Tuple[NDArray[np.float64], NDArray[np.bool_]]:
@@ -21,15 +29,14 @@ def select_lines(
     - selected_mask: boolean array with shape (n_, m) indicating whether  
       each angle in `theta` falls within the angle range of each line.
     """
+    idxs = kdtree.query_ball_point(pos, max_dist)
+    lines = lines[idxs]
+
     xa, ya, xb, yb = (
         lines[:, 0] - pos[0], lines[:, 1] - pos[1],
         lines[:, 3] - pos[0], lines[:, 4] - pos[1]
     )
-    lines = lines[
-        ((xb * ya) != (xa * yb)) &
-        (np.minimum(np.hypot(xa, ya), np.hypot(xb, yb)) < max_dist)
-    ].copy()
-    del xa, ya, xb, yb
+    lines = lines[(xb * ya) != (xa * yb)].copy()
     lines[:, (0, 3)] -= pos[0]
     lines[:, (1, 4)] -= pos[1]
 
@@ -74,6 +81,9 @@ def calc_alpha(
     - alpha_2: shape (m,) array of angles of elevation  
       with respect to `theta - pi`.
     """
+    if lines.shape[0] == 0:
+        return np.zeros_like(theta), np.zeros_like(theta)
+
     alphas = selected * (
         np.arctan((
             (lines[:, 1] * lines[:, 5] - lines[:, 4] * lines[:, 2])
@@ -92,6 +102,8 @@ def calc_alpha(
 
 
 if __name__ == "__main__":
+    from data_reader import build_kdtree
+
     lines = np.array([
         #  xa,   ya,   za,   xb,   yb,  zb
         [ 1.0,  1.0,  1.0, -1.0,  1.0, 1.0],
@@ -99,17 +111,19 @@ if __name__ == "__main__":
         [-1.0, -1.0,  1.0,  1.0, -1.0, 1.0],
         [ 1.0, -1.0,  1.0,  1.0,  1.0, 1.0],
     ])
-
+    kdtree = build_kdtree(lines)
     theta = np.linspace(0, np.pi, num=500, endpoint=False)
 
-    selected_lines, selected = select_lines(theta, lines, pos=(0.5, 0.2))
+    selected_lines, selected = select_lines(theta, lines, kdtree, pos=(0.5, 0.2))
     a1, a2 = calc_alpha(theta, selected_lines, selected)
 
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.yaxis.set_major_formatter("")
-    x = np.concatenate((theta, (theta - np.pi), [theta[0]]), axis=0)
-    y= np.concatenate((np.pi/2 - a1, np.pi/2 - a2, [np.pi/2 - a1[0]]), axis=0)
+    x = np.concatenate((theta, (theta - np.pi), np.array([theta[0]])), axis=0)
+    y= np.concatenate((np.pi/2 - a1, np.pi/2 - a2, np.array([np.pi/2 - a1[0]])), axis=0)
+    if np.__name__ == "cupy":
+        x, y = x.get(), y.get()
     ax.plot(x, y)
     ax.fill_between(x, y, np.pi/2, alpha=0.2)
     ax.set_ylim(0, np.pi / 2)

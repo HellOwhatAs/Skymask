@@ -1,11 +1,17 @@
 import geopandas as gpd
 import numpy as np
 from numpy.typing import NDArray
+from scipy.spatial import KDTree
 from shapely.geometry.polygon import Polygon
 import shapely
 from functools import partial
 from typing import List, Optional
 
+def build_kdtree(lines: np.ndarray):
+    tree_data = lines[:, 0:2]
+    if not isinstance(lines, np.ndarray):
+        tree_data = tree_data.get()
+    return KDTree(tree_data)
 
 def poly2lines(poly: Polygon, xy: Optional[List[float]] = None):
     coords = shapely.get_coordinates(poly, include_z=True)
