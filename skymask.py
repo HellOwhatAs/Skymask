@@ -2,7 +2,7 @@ import cupy
 from numpy.typing import NDArray
 from scipy.spatial import KDTree
 from typing import Tuple
-if not cupy.cuda.is_available():
+if cupy.cuda.is_available():
     import cupy as np
     free_mem, total_mem = cupy.cuda.runtime.memGetInfo()
     np.get_default_memory_pool().set_limit(free_mem * 0.8)
