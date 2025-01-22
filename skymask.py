@@ -20,17 +20,17 @@ def select_lines(
     """
     Select lines based on the given angles.
     # Parameters:
-    - theta: array of angles with shape (m,).
-      Each element shound be in range [0, pi)
-    - lines: array with shape (n, 6) where each row represents  
-      a line defined by two points (x1, y1, z1, x2, y2, z2).
-    - kdtree: KDTree object built from `lines`.
-    - pos: the position of the observer.
-    - max_dist: select line within distance threshold.
+    `theta`: array of angles with shape (m,).
+        Each element shound be in range [0, pi)
+    `lines`: array with shape (n, 6) where each row represents  
+        a line defined by two points (x1, y1, z1, x2, y2, z2).
+    `kdtree`: KDTree object built from `lines`.
+    `pos`: the position of the observer.
+    `max_dist`: select line within distance threshold.
     # Returns:
-    - selected_lines: array with shape (n_, 6) where each row is from `lines`.
-    - selected_mask: boolean array with shape (n_, m) indicating whether  
-      each angle in `theta` falls within the angle range of each line.
+    `selected_lines`: array with shape (n_, 6) where each row is from `lines`.
+    `selected_mask`: boolean array with shape (n_, m) indicating whether  
+        each angle in `theta` falls within the angle range of each line.
     """
     idxs = kdtree.query_ball_point(pos, max_dist)
     lines = lines[idxs]
@@ -72,17 +72,17 @@ def calc_alpha(
     """
     Calculate angle of elevation based on theta and selected lines.
     # Parameters:
-    - theta: array of angles with shape (m,).
-      Each element shound be in range [0, pi)
-    - lines: array with shape (n, 6) where each row represents  
-      a line defined by two points (x1, y1, z1, x2, y2, z2).
-    - selected: boolean array with shape (n, m) indicating whether  
-      each angle in `theta` falls within the angle range of each line.
+    `theta`: array of angles with shape (m,).
+        Each element shound be in range [0, pi)
+    `lines`: array with shape (n, 6) where each row represents  
+        a line defined by two points (x1, y1, z1, x2, y2, z2).
+    `selected`: boolean array with shape (n, m) indicating whether  
+        each angle in `theta` falls within the angle range of each line.
     # Returns:
-    - alpha_1: shape (m,) array of angles of elevation  
-      with respect to `theta`.
-    - alpha_2: shape (m,) array of angles of elevation  
-      with respect to `theta - pi`.
+    `alpha_1`: shape (m,) array of angles of elevation  
+        with respect to `theta`.
+    `alpha_2`: shape (m,) array of angles of elevation  
+        with respect to `theta - pi`.
     """
     if lines.shape[0] == 0:
         return np.zeros_like(theta), np.zeros_like(theta)
