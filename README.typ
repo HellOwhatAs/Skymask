@@ -1,3 +1,6 @@
+#import "@preview/lovelace:0.3.0": pseudocode-list
+#set page(height: auto)
+#set par(justify: true)
 #set text(font: ("Libertinus Serif", "Noto Serif CJK SC"))
 #set heading(numbering: "1.")
 #let atan2 = math.op("atan2", limits: true)
@@ -35,3 +38,34 @@ l = ((x_b y_a - x_a y_b))/k $
 如果算出来是负数，说明是直线在相反方向，这样就可以将问题输入范围简化为$[0, pi)$
 
 对于输入$theta in [0, pi)$，如果结果为正，则为 $theta$ 的值，而如果结果为负，则为负的$theta - pi$处的值
+
+= 优化思路
+== 删除无用线段
+*Lemma 1:* 对于两条线段$A$和$B$，若$theta_1$和$theta_2$上都有$A >= B$，则$forall theta in [theta_1, theta_2]$也都有$A(theta) >= B(theta)$。
+
+*Proof:* 记$A(theta) = a cos theta + b sin theta, quad B(theta) = c cos theta + d theta, quad A-B = (a-c) cos theta + (b-d) sin theta$。
+$A-B$的相邻零点间隔是固定值$pi$，但线段的跨度必须小于$pi$，因此两个线段最多只有一个交点。
+如果在两个端点都有$A>=B$，则$[theta_1, theta_2]$之间不存在$A<B$的点，否则会有两个交点。#sym.qed
+
+根据*Lemma 1*，我们可以排除一部分必定不会成为最大值的线段：对于线段$A$和$B$，如果$B$的范围被$A$包括且$B<=A$在$B$的范围里总是成立，则$B$可以直接删除，只需要保留$A$。
+这是一个找#text(fill: blue)[偏序集合中最大元]的问题。
+
+== 分治算法
+#figure(
+kind: "algorithm",
+supplement: [Algorithm],
+pseudocode-list(booktabs: true, numbered-title: [计算线段分段最大值函数 #h(1fr)])[
++ *Input:* 一些线段的起点和终点 $cal(P) = {((theta^s_1, alpha^s_1), (theta^e_1, alpha^e_1)), dots, ((theta^s_n, alpha^s_n), (theta^e_n, alpha^e_n))}$
++ *Function* $cal(F)(cal(P))$
+  + 找出 $cal(P)$ 中 $alpha$ 值最大的点 $p^* = (theta^*, alpha^*)$，记对应的线段为 $l^*$ #h(1fr) #text(fill: gray)[$O(n)$]
+  + 计算所有线段与 $l^*$ 的交点中使得 $abs(theta^* - theta^')$ 最小的交点 $p^' = (theta^', alpha^')$ #h(1fr) #text(fill: gray)[$O(n)$]
+  + $(theta_1, theta_2) <- (min(theta^*, theta^'), max(theta^*, theta^'))$
+  + 对于横跨了 $theta_1$ 或 $theta_2$ 的线段，拆分成多条线段 #h(1fr) #text(fill: gray)[$O(n)$]
+  + 将 $cal(P)$ 分出两个子集合 $cal(P)_1, cal(P)_2$ 分别表示在比 $theta_1$ 小和比 $theta_2$ 大的区域的线段 #h(1fr) #text(fill: gray)[$O(n)$]
+  + *return* $cal(F)(P_1) + cal(f)(p^*, p^') + cal(F)(P_2)$
++ *end*
++ *Output:* $cal(F)(cal(P))$
+]) <alg_divide>
+对于输入的$n$条线段，@alg_divide 的时间复杂度为
+$ T(n) = 2 T(n/2) + O(n) \
+T(n) = n log n $
