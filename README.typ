@@ -49,6 +49,7 @@ $A-B$的相邻零点间隔是固定值$pi$，但线段的跨度必须小于$pi$�
 
 根据*Lemma 1*，我们可以排除一部分必定不会成为最大值的线段：对于线段$A$和$B$，如果$B$的范围被$A$包括且$B<=A$在$B$的范围里总是成立，则$B$可以直接删除，只需要保留$A$。
 这是一个找#text(fill: blue)[偏序集合中最大元]的问题。
+需要找到一个时间复杂度小于$O(n log n)$的算法才能考虑使用。
 
 == 分治算法
 #figure(
@@ -68,4 +69,4 @@ pseudocode-list(booktabs: true, numbered-title: [计算线段分段最大值函�
 ]) <alg_divide>
 对于输入的$n$条线段，@alg_divide 的时间复杂度为
 $ T(n) = 2 T(n/2) + O(n) \
-T(n) = n log n $
+T(n) = O(n log n) $

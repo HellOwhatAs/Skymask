@@ -1,5 +1,6 @@
 # Skymask
-## Example
+## Interactive Example
+Control with <kbd>up</kbd>, <kbd>down</kbd>, <kbd>left</kbd>, <kbd>right</kbd>.
 ```py
 import matplotlib.pyplot as plt
 from data_reader import build_kdtree, read_shp
@@ -19,4 +20,4 @@ plt.show()
 ```
 
 ## Explanation
-![](./README.svg)
+<image src="./README.svg" width="100%">
