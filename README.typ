@@ -57,13 +57,20 @@ kind: "algorithm",
 supplement: [Algorithm],
 pseudocode-list(booktabs: true, numbered-title: [计算线段分段最大值函数 #h(1fr)])[
 + *Input:* 一些线段的起点和终点 $cal(P) = {((theta^s_1, alpha^s_1), (theta^e_1, alpha^e_1)), dots, ((theta^s_n, alpha^s_n), (theta^e_n, alpha^e_n))}$
-+ *Function* $cal(F)(cal(P))$
++ *Function* $cal(F)(cal(P), theta^s, theta^e)$
+  + *if* $theta^s = theta^e$ *then*
+    + *return* $emptyset$
+  + *else if* $cal(P)$ is empty *then*
+    + *return* ${0"-function with dom" [theta^s, theta^e]}$
+  + *end*
   + 找出 $cal(P)$ 中 $alpha$ 值最大的点 $p^* = (theta^*, alpha^*)$，记对应的线段为 $l^*$ #h(1fr) #text(fill: gray)[$O(n)$]
   + 计算所有线段与 $l^*$ 的交点中使得 $abs(theta^* - theta^')$ 最小的交点 $p^' = (theta^', alpha^')$ #h(1fr) #text(fill: gray)[$O(n)$]
-  + $(theta_1, theta_2) <- (min(theta^*, theta^'), max(theta^*, theta^'))$
-  + 对于横跨了 $theta_1$ 或 $theta_2$ 的线段，拆分成多条线段 #h(1fr) #text(fill: gray)[$O(n)$]
-  + 将 $cal(P)$ 分出两个子集合 $cal(P)_1, cal(P)_2$ 分别表示在比 $theta_1$ 小和比 $theta_2$ 大的区域的线段 #h(1fr) #text(fill: gray)[$O(n)$]
-  + *return* $cal(F)(P_1) + cal(f)(p^*, p^') + cal(F)(P_2)$
+  + *if* $theta^' > theta^*$ *then*
+    + $(p^', p^*) <- (p^*, p^')$
+  + *end*
+  + 对于横跨了 $theta^'$ 或 $theta^*$ 的线段，拆分成多条线段 #h(1fr) #text(fill: gray)[$O(n)$]
+  + 将 $cal(P)$ 分出两个子集合 $cal(P)_1, cal(P)_2$ 分别表示在比 $theta^'$ 小和比 $theta^*$ 大的区域的线段 #h(1fr) #text(fill: gray)[$O(n)$]
+  + *return* $cal(F)(P_1, theta^s, theta^') + {cal(f)(p^*, p^')} + cal(F)(P_2, theta^*, theta^e)$
 + *end*
 + *Output:* $cal(F)(cal(P))$
 ]) <alg_divide>
