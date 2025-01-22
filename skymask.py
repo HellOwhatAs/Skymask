@@ -24,6 +24,9 @@ def select_lines(
       Each element shound be in range [0, pi)
     - lines: array with shape (n, 6) where each row represents  
       a line defined by two points (x1, y1, z1, x2, y2, z2).
+    - kdtree: KDTree object built from `lines`.
+    - pos: the position of the observer.
+    - max_dist: select line within distance threshold.
     # Returns:
     - selected_lines: array with shape (n_, 6) where each row is from `lines`.
     - selected_mask: boolean array with shape (n_, m) indicating whether  
