@@ -1,13 +1,12 @@
-import cupy
 from numpy.typing import NDArray
 from scipy.spatial import KDTree
 from typing import Tuple
-if cupy.cuda.is_available():
+try:
     import cupy as np
-    free_mem, total_mem = cupy.cuda.runtime.memGetInfo()
+    free_mem, total_mem = np.cuda.runtime.memGetInfo()
     np.get_default_memory_pool().set_limit(free_mem * 0.8)
     # https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.MemoryPool.html
-else:
+except ImportError:
     import numpy as np
 
 def select_lines(
