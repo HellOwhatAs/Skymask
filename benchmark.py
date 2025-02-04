@@ -1,7 +1,7 @@
 import skymask_py
 import numpy as np
 import time
-from data_reader import read_shp, build_kdtree
+from data_reader import build_kdtree
 from skymask import select_lines, calc_alpha
 import skymask
 import cupy as cp
@@ -47,7 +47,7 @@ def bench_cupy(lines, kdtree, x, poss, max_dist):
 
 
 if __name__ == "__main__":
-    num_samples = 500
+    num_samples = 1000
     num_pos = 1000
     max_dist = 1000.0
     eps = 1e-6
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     world = skymask_py.World(
         "./local/Shanghai/Shanghai_Buildings_DWG-Polygon.shp", max_dist, eps
     )
-    lines, _ = read_shp("./local/Shanghai/Shanghai_Buildings_DWG-Polygon.shp")
+    lines = world.lines
     kdtree = build_kdtree(
         np.vstack((lines[:, (0, 3)].mean(axis=1), lines[:, (1, 4)].mean(axis=1))).T
     )
@@ -66,5 +66,5 @@ if __name__ == "__main__":
 
     print("Rust parallel:", bench_rust_par(world, poss, x))
     print("Rust:", bench_rust(world, poss, x))
-    print("Numpy:", bench_numpy(lines, kdtree, x, poss, max_dist))
-    print("Cupy:", bench_cupy(lines, kdtree, x, poss, max_dist))
+    print("Cupy:", bench_cupy(lines, kdtree, x2, poss, max_dist))
+    print("Numpy:", bench_numpy(lines, kdtree, x2, poss, max_dist))
